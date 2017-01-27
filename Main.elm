@@ -6,7 +6,6 @@ import List
 import Regex exposing (..)
 
 
-
 main =
   Html.beginnerProgram
     { model = model
@@ -44,11 +43,16 @@ update msg model =
 
 firstLetters : String -> String
 firstLetters =
-  replace All (regex "\\B\\w") (\_ -> "_")
+  Regex.replace All (regex "\\B\\w") (\_ -> "_")
+  -- firstLetters "Rock me now" == "R___ m_ n__"
 
 firstWords : String -> String
-firstWords =
-  replace All (regex "\\s(.*)") (\_ -> "\n")
+firstWords words =
+  words
+    |> Regex.split All (regex "[\n\\!\\.\\?]+\\s*")
+    |> List.map (Regex.replace All (regex "\\s(.*)") (\_ -> ""))
+    |> String.join "\n"
+  -- firstWords "Who am I? \n Why am I here?" == "Who\nWhy"
 
 newLineHandler : String -> List (Html msg)
 newLineHandler textBox =
@@ -66,8 +70,6 @@ view : Model -> Html Msg
 view model =
   div []
     [ textarea [ placeholder "Fill this \n in", onInput Change ] []
-    , div [] [ text "Hello",  br [] [], text "World" ]
-    , div [] [ text (firstLetters model.content) ]
-    , div [] [ text (firstWords model.content) ]
-    , div [] ( newLineHandler model.content )
+    , div [] ( newLineHandler (firstLetters model.content) )
+    , div [] ( newLineHandler (firstWords model.content) )
     ]
